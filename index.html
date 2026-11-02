@@ -41,6 +41,8 @@ h1{margin:0;font-size:clamp(40px,7vw,96px);line-height:.92;letter-spacing:-.04em
 .close .who{margin-top:24px;font-size:15px;color:var(--off)}
 .close .note{margin-top:28px;font-size:13px;color:#BFB4A3}
 @media (max-width:980px){.grid{grid-template-columns:1fr;max-width:440px;margin:0 auto}.card p{min-height:0}.pairs{grid-template-columns:1fr}}
+.close p{margin:0 0 14px;font-size:17px;line-height:1.6;color:#E6DFD2;max-width:60ch}
+.close .fine{font-size:14px;line-height:1.55;color:#CFC6B6;max-width:62ch}
 </style>
 </head>
 <body>
@@ -308,13 +310,69 @@ h1{margin:0;font-size:clamp(40px,7vw,96px);line-height:.92;letter-spacing:-.04em
 "></iframe><div class="hint">Scroll to see the whole email</div></div></div>
 </div></div></section>
 <section class="band close"><div class="wrap">
-<h3>Want these sending for you?</h3>
-<p>I build and run email for small Australian brands that sell out: the emails, the imagery, the automations and the reporting. Reply to my email, or write to hello@theserviceedit.com, and we'll find 15 minutes.</p>
+<h3>Your first month is on results.</h3>
+<p>If you&#x27;ve got 1,000 or more opted-in contacts across your newsletter, bookings and online orders, I&#x27;ll set up the welcome email and send these campaigns, plus one more, to that list in the lead-up to Christmas. If they don&#x27;t bring in more than my monthly fee of $750*, you don&#x27;t pay. No lock-in, no risk to you.</p><p>I owned my own cafés for close to a decade. Business owner to business owner, I wouldn&#x27;t put this forward if I didn&#x27;t think it would pay for itself.</p><p class="fine">*How it&#x27;s measured: every email gets its own tracked links, plus a code just for these emails where it fits (an order, voucher or booking code). Before anything goes out, we agree what counts: sales, vouchers and bookings that come through those links or codes during the first month, with bookings valued at your average spend per head. The figures come straight from your own sales and booking systems, so you see exactly what I see.</p><p class="fine">Who counts toward the 1,000: anyone who has said yes to hearing from you, whether through your newsletter sign-up, a booking or an online order, and who hasn&#x27;t unsubscribed. Under 1,000? We start with the welcome email and growing your list from the bookings and orders you already take, at the standard monthly fee, and I&#x27;ll tell you straight if email isn&#x27;t worth it for you yet.</p><p>Reply to my email or write to hello@theserviceedit.com, and we&#x27;ll find 15 minutes.</p>
 <div class="who">Mel Cox · The Service Edit · Perth, WA · theserviceedit.com</div>
 <div class="note">Mockups only. Nothing here has been sent to your customers.</div>
 </div></section>
 <script>
 document.querySelectorAll('iframe').forEach(function(f){f.addEventListener('load',function(){try{var d=f.contentDocument;var n=d.querySelector('.mock-note');if(n)n.style.display='none';}catch(e){}});});
+</script>
+<script>
+/* TSE TRACKING (do not remove or edit). Logs visits, time on page, emails scrolled, clicks inside mockups and reaching the offer, keyed to ?r=<token>.
+   Never fires: without a token, for ?qa=1, in automated browsers, or once Mel has visited any showcase with ?me=1 (cookie on .theserviceedit.com). */
+(function(){
+  var EP='https://rxwjactnfsrakpagbiit.supabase.co/functions/v1/track/e';
+  try{
+    var q=new URLSearchParams(location.search);
+    if(q.get('me')==='1'){document.cookie='tse_me=1; domain=.theserviceedit.com; path=/; max-age=315360000; secure; samesite=lax';}
+    if(/(^|;\s*)tse_me=1/.test(document.cookie)||q.get('qa')==='1'||navigator.webdriver)return;
+    var t=(q.get('r')||sessionStorage.getItem('tse_r')||'').toLowerCase();
+    if(!/^[a-z0-9]{6,16}$/.test(t))return;
+    sessionStorage.setItem('tse_r',t);
+    var s=sessionStorage.getItem('tse_s');
+    if(!s){s=Math.random().toString(36).slice(2,12)+Date.now().toString(36);sessionStorage.setItem('tse_s',s);}
+  }catch(e){return;}
+  var sent={};
+  function send(e,d,once){
+    var key=e+'|'+(d||'');
+    if(once&&sent[key])return; sent[key]=1;
+    var body=JSON.stringify({t:t,e:e,d:String(d||''),s:s});
+    try{if(navigator.sendBeacon&&navigator.sendBeacon(EP,body))return;}catch(x){}
+    try{fetch(EP,{method:'POST',body:body,mode:'no-cors',keepalive:true});}catch(x){}
+  }
+  send('view','',true);
+  var secs=0,marks=[15,30,60,120,300,600];
+  setInterval(function(){
+    if(document.visibilityState!=='visible')return;
+    secs++;
+    if(marks.indexOf(secs)>-1)send('engaged',secs,true);
+  },1000);
+  function kicker(f){var c=f.closest('.card');var k=c&&c.querySelector('.k');return k?k.textContent.trim():((f.getAttribute('title')||'email').replace(/ email for .*$/i,''));}
+  function wire(f){
+    var d,w;try{d=f.contentDocument;w=f.contentWindow;}catch(x){return;}
+    if(!d||!d.body||d.__tse||d.URL==='about:blank')return;
+    d.__tse=1;
+    var k=kicker(f);
+    d.addEventListener('click',function(ev){
+      var a=ev.target&&ev.target.closest?ev.target.closest('a[href]'):null;
+      if(a)send('cta',k+'|'+a.getAttribute('href'));
+    },true);
+    w.addEventListener('scroll',function(){
+      var h=d.documentElement.scrollHeight||d.body.scrollHeight;
+      if((w.scrollY+w.innerHeight)>=h*0.7)send('email_read',k,true);
+    },{passive:true});
+  }
+  document.querySelectorAll('iframe').forEach(function(f){
+    f.addEventListener('load',function(){wire(f);});
+    try{if(f.contentDocument&&f.contentDocument.readyState==='complete')wire(f);}catch(x){}
+  });
+  var offer=document.querySelector('.close h3');
+  if(offer&&'IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){send('offer','',true);io.disconnect();}});},{threshold:0.6});
+    io.observe(offer);
+  }
+})();
 </script>
 </body>
 </html>
